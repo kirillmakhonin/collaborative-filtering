@@ -78,9 +78,14 @@ namespace DatasetSplitter
 
 
             for (int i = 0; i < countOfChunks; i++)
-                File.WriteAllText(_baseSaveFile + i.ToString() + ".csv",
-                    string.Join("\n", _items.Where(item => item.IdsBetween(i * _idsInDataset, (i + 1)*_idsInDataset))
-                        .Select(m => m.ToString(i * _idsInDataset))));
+            {
+                var filteredItems = _items.Where(item => item.IdsBetween(i*_idsInDataset, (i + 1)*_idsInDataset))
+                    .Select(m => m.ToString(i*_idsInDataset));
+
+                if (filteredItems.Any())
+                    File.WriteAllText(_baseSaveFile + i.ToString() + ".csv", string.Join("\n", filteredItems));
+            }
+                
 
             return true;
         }
