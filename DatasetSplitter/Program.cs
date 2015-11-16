@@ -27,9 +27,14 @@ namespace DatasetSplitter
                 mark = Math.Min(int.Parse(words[2]), 5);
             }
 
+            public string ToString(int removeOffset = 0)
+            {
+                return String.Format("{0},{1},{2}", user - removeOffset, item - removeOffset, mark);
+            }
+
             public override string ToString()
             {
-                return String.Format("{0},{1},{2}", user, item, mark);
+                return this.ToString();
             }
 
             public bool IdsBetween(int a, int b)
@@ -74,8 +79,8 @@ namespace DatasetSplitter
 
             for (int i = 0; i < countOfChunks; i++)
                 File.WriteAllText(_baseSaveFile + i.ToString() + ".csv",
-                    string.Join("\n", _items.Where(item => item.IdsBetween(i*_idsInDataset, (i + 1)*_idsInDataset))
-                        .Select(m => m.ToString())));
+                    string.Join("\n", _items.Where(item => item.IdsBetween(i * _idsInDataset, (i + 1)*_idsInDataset))
+                        .Select(m => m.ToString(i * _idsInDataset))));
 
             return true;
         }
