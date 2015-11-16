@@ -17,14 +17,14 @@ namespace CollaborativeFiltering
         public Int16 Rate { get { return _rate; } }
 
 
-        Mark(Int32 item, Int32 user, Int16 rate)
+        public Mark(Int32 item, Int32 user, Int16 rate)
         {
             _item = item;
             _user = user;
             _rate = rate;
         }
 
-        Mark(string dataline)
+        public Mark(string dataline)
         {
             string[] words = dataline.Split(',');
             if (words.Length < 3) return;
