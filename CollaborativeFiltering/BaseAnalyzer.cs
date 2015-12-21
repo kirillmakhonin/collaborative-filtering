@@ -46,14 +46,8 @@ namespace CollaborativeFiltering
             return Tuple.Create(a, b);
         }
 
-        public Dictionary<int, List<int>> GetRecommendationsDictionary(FilteringType filter)
-        {
-            var ret = new Dictionary<int, List<int>>();
 
-            foreach (int user in GetUsersList())
-                ret[user] = GetRecommendedItems(user, filter);
 
-            return ret;
-        }
+
     }
 }

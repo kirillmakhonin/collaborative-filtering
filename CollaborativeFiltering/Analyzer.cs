@@ -155,6 +155,27 @@ namespace CollaborativeFiltering
 
         }
 
+        private Dictionary<int, Dictionary<int, int>> _rateTable;
+
+        private void FillRateDictionary()
+        {
+            _rateTable = new Dictionary<int, Dictionary<int, int>>();
+
+            var items = GetItemsList();
+
+            foreach (var user in GetUsersList())
+            {
+                _rateTable[user] = new Dictionary<int, int>();
+                foreach (var item in items)
+                    _rateTable[user][item] = 0;
+            }
+
+            foreach (var mark in _marks)
+                _rateTable[mark.User][mark.Item] = -mark.Rate;
+
+
+        }
+
         public void InitCoefficients()
         {
             var usersList = GetUsersList();
@@ -179,6 +200,79 @@ namespace CollaborativeFiltering
                     ACPCAnalyzer(ac_items_, a, b, GetIntersectedUsersWithRates, GetAverageUserRate, true, false);
             #endregion
 
+
+            FillRateDictionary();
+
+        }
+
+
+        private List<int> GetMaxRelevantListOfUsers(int user)
+        {
+            return pc_users_.Where(pc => (pc.Key.Item1 == user || pc.Key.Item2 == user) && pc.Value >= 0.5)
+                .Select(pc => pc.Key.Item1 == user ? pc.Key.Item2 : pc.Key.Item1).ToList();
+        }
+
+        private List<int> GetMaxRelevantListOfItems(int item)
+        {
+            return pc_items_.Where(pc => (pc.Key.Item1 == item || pc.Key.Item2 == item) && pc.Value >= 0.5)
+                .Select(pc => pc.Key.Item1 == item ? pc.Key.Item2 : pc.Key.Item1).ToList();
+        }
+
+        private List<int> GetUsersThatRateItem(int item, int excluded = -1)
+        {
+            return _marks.Where(m => m.Item == item && m.User != excluded).Select(m => m.User).ToList();
+        }
+
+        private int GetUserMark(int user, int item)
+        {
+            var mark = _marks.FirstOrDefault(m => m.User == user && m.Item == item);
+            return mark != null ? mark.Rate : 0;
+        }
+
+        /*
+         * return 
+         *  user => { item: rate , item: rate,... }
+         */
+        public Dictionary<int, Dictionary<int, int>> GetMarks(FilteringType filter)
+        {
+            var rate = _rateTable;
+            var items = GetItemsList();
+
+
+            if (filter == FilteringType.UserBased)
+            {
+                foreach (var user in rate.Keys)
+                {
+                    var averageUserRate = GetAverageUserRate(user);
+                    List<int> maxCorellatedUsers = GetMaxRelevantListOfUsers(user);
+
+                    foreach (var item in items)
+                    {
+                        // Оценка уже стоит?
+                        if (rate[user][item] < 0)
+                            continue;
+
+                        var usersThatHasMark = GetUsersThatRateItem(item, user);
+
+                        var usersForProcessing = maxCorellatedUsers.Intersect(usersThatHasMark);
+
+                        if (!usersForProcessing.Any())
+                            continue;
+
+                        var rateValue = averageUserRate +
+                                   usersForProcessing.Sum(
+                                       with =>
+                                           pc_items_[KeyOf(user, with)] * (GetUserMark(user, item) - GetAverageUserRate(with)))
+                                           / usersForProcessing.Sum(
+                                       with =>
+                                           pc_items_[KeyOf(user, with)]);
+
+                        rate[user][item] = (int)Math.Round(rateValue);
+                    }
+                }
+            }
+
+            return rate;
         }
     }
 }

@@ -71,5 +71,13 @@ namespace CollaborativeFilteringTest
         {
             Assert.AreEqual(0.9230769, _analyzer.PC_users[BaseAnalyzer.KeyOf(1, 2)], 0.00001);
         }
+
+
+        [TestMethod]
+        public void TestRateMatrix()
+        {
+            var matrix = _analyzer.GetMarks(BaseAnalyzer.FilteringType.UserBased);
+
+        }
     }
 }
