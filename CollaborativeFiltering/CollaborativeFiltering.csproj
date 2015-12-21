@@ -40,6 +40,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Analyzer.cs" />
+    <Compile Include="BaseAnalyzer.cs" />
     <Compile Include="IAnalyzer.cs" />
     <Compile Include="Mark.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

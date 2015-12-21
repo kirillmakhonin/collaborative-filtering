@@ -8,8 +8,8 @@ namespace CollaborativeFiltering
 {
     interface IAnalyzer
     {
-        double? GetAverageItemRating(int itemId);
-        double? GetAverageUserRating(int userId);
+        double GetAverageItemRate(int itemId);
+        double GetAverageUserRate(int userId);
         List<int> GetIntersectedItems(int userA, int userB);
     }
 }

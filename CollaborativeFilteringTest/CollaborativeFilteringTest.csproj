@@ -52,6 +52,7 @@
   <ItemGroup>
     <Compile Include="FilterBaseTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="LabTest.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\CollaborativeFiltering\CollaborativeFiltering.csproj">
