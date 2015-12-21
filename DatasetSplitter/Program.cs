@@ -17,6 +17,8 @@ namespace DatasetSplitter
             public int item;
             public int mark;
 
+            public bool origin;
+
             public DatasetItem(string baseLine)
             {
                 string[] words = baseLine.Split(',');
@@ -25,6 +27,8 @@ namespace DatasetSplitter
                 user = int.Parse(words[0]);
                 item = int.Parse(words[1]);
                 mark = Math.Min(int.Parse(words[2]), 5);
+
+                origin = false;
             }
 
             public string ToString(int removeOffset = 0)
@@ -49,6 +53,11 @@ namespace DatasetSplitter
         private List<DatasetItem> _items;
         private int _idsInDataset;
 
+        public int Count
+        {
+            get { return _items.Count; }
+        }
+
         Program(string datasetFile, int idsInDataset)
         {
             _baseSaveFile = datasetFile.EndsWith(".csv") ? datasetFile.Substring(0, datasetFile.Length - 3) : datasetFile;
@@ -70,6 +79,30 @@ namespace DatasetSplitter
 
         }
 
+
+        public void FilterMarks()
+        {
+            Dictionary<int, List<int>> userMarks = new Dictionary<int, List<int>>();
+            Dictionary<int, List<int>> itemMarks = new Dictionary<int, List<int>>();
+            
+
+            foreach (DatasetItem item in _items)
+            {
+                if (!userMarks.ContainsKey(item.user))
+                    userMarks[item.user] = new List<int>();
+                userMarks[item.user].Add(item.mark);
+
+                if (!itemMarks.ContainsKey(item.item))
+                    itemMarks[item.item] = new List<int>();
+                itemMarks[item.item].Add(item.mark);
+            }
+
+
+            List<int> itemsForRemoving = (from itemMark in itemMarks where !(itemMark.Value.Count > 0 && itemMark.Value.Distinct().Count() > 1) select itemMark.Key).ToList();
+            List<int> usersForRemoving = (from userMark in userMarks where !(userMark.Value.Count > 0 && userMark.Value.Distinct().Count() > 1) select userMark.Key).ToList();
+
+            _items.RemoveAll(dsi => itemsForRemoving.Contains(dsi.item) || usersForRemoving.Contains(dsi.user));
+        }
 
         public bool Save()
         {
@@ -99,8 +132,11 @@ namespace DatasetSplitter
                 return;
             }
 
-            Program p = new Program(args[0], Int32.Parse(args[1]));
+            Program p = new Program(args[0], Int32.Parse(args[1]) + 1);
 
+            Console.WriteLine("Before filtering: {0}", p.Count);
+            p.FilterMarks();
+            Console.WriteLine("After filtering: {0}", p.Count);
             
             p.Save();
 
