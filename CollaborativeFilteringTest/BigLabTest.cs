@@ -74,6 +74,12 @@ namespace CollaborativeFilteringTest
 
 
         [TestMethod]
+        public void TestPCi()
+        {
+            Assert.AreEqual(-0.5976, _analyzer.PC_items[BaseAnalyzer.KeyOf(1, 2)], 0.001);
+        }
+
+        [TestMethod]
         public void TestRateMatrix()
         {
             var matrix = _analyzer.GetMarks(BaseAnalyzer.FilteringType.UserBased);
