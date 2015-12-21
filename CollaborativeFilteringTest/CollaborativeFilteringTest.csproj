@@ -53,6 +53,7 @@
     <Compile Include="FilterBaseTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="LabTest.cs" />
+    <Compile Include="BigLabTest.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\CollaborativeFiltering\CollaborativeFiltering.csproj">
