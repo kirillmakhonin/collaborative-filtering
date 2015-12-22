@@ -206,24 +206,30 @@ namespace CollaborativeFiltering
         }
 
 
-        private List<int> GetMaxRelevantListOfUsers(int user)
+        public List<int> GetMaxRelevantListOfUsers(int user)
         {
             return pc_users_.Where(pc => (pc.Key.Item1 == user || pc.Key.Item2 == user) && pc.Value >= 0.5)
                 .Select(pc => pc.Key.Item1 == user ? pc.Key.Item2 : pc.Key.Item1).ToList();
         }
 
-        private List<int> GetMaxRelevantListOfItems(int item)
+        public List<int> GetMaxRelevantListOfItems(int item)
         {
             return pc_items_.Where(pc => (pc.Key.Item1 == item || pc.Key.Item2 == item) && pc.Value >= 0.5)
                 .Select(pc => pc.Key.Item1 == item ? pc.Key.Item2 : pc.Key.Item1).ToList();
         }
 
-        private List<int> GetUsersThatRateItem(int item, int excluded = -1)
+        public List<int> GetUsersThatRateItem(int item, int excluded = -1)
         {
             return _marks.Where(m => m.Item == item && m.User != excluded).Select(m => m.User).ToList();
         }
 
-        private int GetUserMark(int user, int item)
+        public List<int> GetItemsThatRatedByUser(int user, int excluded = -1)
+        {
+            return _marks.Where(m => m.User == user && m.Item != excluded).Select(m => m.Item).ToList();
+        }
+
+
+        public int GetUserMark(int user, int item)
         {
             var mark = _marks.FirstOrDefault(m => m.User == user && m.Item == item);
             return mark != null ? mark.Rate : 0;
@@ -262,14 +268,48 @@ namespace CollaborativeFiltering
                         var rateValue = averageUserRate +
                                    usersForProcessing.Sum(
                                        with =>
-                                           pc_items_[KeyOf(user, with)] * (GetUserMark(user, item) - GetAverageUserRate(with)))
+                                           pc_users_[KeyOf(user, with)] * (GetUserMark(with, item) - GetAverageUserRate(with)))
                                            / usersForProcessing.Sum(
                                        with =>
-                                           pc_items_[KeyOf(user, with)]);
+                                           Math.Abs(pc_users_[KeyOf(user, with)]));
 
                         rate[user][item] = (int)Math.Round(rateValue);
                     }
                 }
+            }
+            else if (filter == FilteringType.ItemBased)
+            {
+                foreach (var item in items)
+                {
+                    var averageItemRate = GetAverageItemRate(item);
+                    List<int> maxCorellatedItems = GetMaxRelevantListOfItems(item);
+
+                    foreach (var user in rate.Keys)
+                    {
+                        // Оценка уже стоит?
+                        if (rate[user][item] < 0)
+                            continue;
+
+                        var itemsThatHasMark = GetItemsThatRatedByUser(user, item);
+
+                        var itemsForProcessing = maxCorellatedItems.Intersect(itemsThatHasMark);
+
+                        if (!itemsForProcessing.Any())
+                            continue;
+
+                        var rateValue = averageItemRate +
+                                   itemsForProcessing.Sum(
+                                       with =>
+                                           pc_items_[KeyOf(item, with)] * (GetUserMark(user, with) - GetAverageItemRate(with)))
+                                           / itemsForProcessing.Sum(
+                                       with =>
+                                           Math.Abs(pc_items_[KeyOf(item, with)]));
+
+                        rate[user][item] = (int)Math.Round(rateValue);
+                    }
+
+                }
+
             }
 
             return rate;

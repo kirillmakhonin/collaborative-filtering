@@ -1,6 +1,7 @@
 ﻿using System;
 using CollaborativeFiltering;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System.Collections.Generic;
 
 namespace CollaborativeFilteringTest
 {
@@ -80,10 +81,38 @@ namespace CollaborativeFilteringTest
         }
 
         [TestMethod]
-        public void TestRateMatrix()
+        public void TestRateMatrixUserBased()
         {
             var matrix = _analyzer.GetMarks(BaseAnalyzer.FilteringType.UserBased);
+            Assert.AreEqual(3, matrix[1][5]);
+        }
 
+        [TestMethod]
+        public void TestRateMatrixItemBased()
+        {
+            var matrix = _analyzer.GetMarks(BaseAnalyzer.FilteringType.ItemBased);
+            Assert.AreEqual(4, matrix[1][5]);
+        }
+
+        [TestMethod]
+        public void TestGetMaxRelevantListOfUsers()
+        {
+            var resultList = _analyzer.GetMaxRelevantListOfUsers(1);
+
+            var needList = new List<int>();
+            needList.Add(2);
+            needList.Add(3);
+            needList.Add(5);
+            needList.Add(6);
+            needList.Add(10);
+
+            CollectionAssert.AreEqual(needList, resultList);
+        }
+
+        [TestMethod]
+        public void TestGetUserMark()
+        {
+            Assert.AreEqual(4, _analyzer.GetUserMark(1, 2));
         }
     }
 }
