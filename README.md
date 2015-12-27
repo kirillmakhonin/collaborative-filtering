@@ -7,9 +7,11 @@ Next description taken in Russian
 ## Пакет программ/библиотек
 - CollaborativeFiltering - библиотека для выполнения user-based или item-based коллабаративной фильтрации
 - CollaborativeFilteringConsole - консоль, для использования библиотеки
+- CollaborativeAgent - консоль - обработчик, подключающийся к серверу (пока не реализовано) или загружающий тестовые данные из файла и проверяющий их корректность
 - CollaborativeFilteringTest - unit-тесты для библиотеки
 - DatasetSplitter - консольное приложение для разбиения данных на чанки
 - KPILibrary - заимствованная библиотека для работы с Smart M3
+- csharp-generator.rb - генератор кода тест кейса из csv файла
 
 ### CollaborativeFiltering
 Библиотека, для осуществления предсказаний оценок.
@@ -36,6 +38,26 @@ var matrix = analyzer.GetMarks(CollaborativeFiltering.BaseAnalyzer.FilteringType
 // проверим, что для пользователя 1 предсказана оценка 3 для объекта 5
 Assert.AreEqual(3, matrix[1][5]);
 ```
+
+### CollaborativeAgent
+Консоль - обработчик, подключающийся к серверу (пока не реализовано) или загружающий тестовые данные из файла и проверяющий их корректность.
+
+#### Входные параметры
+* **путь к индекс файлу** [обязательный] 
+
+#### Формат индекс файла
+Индекс файл представляет из себя csv файл без заголовка, с колонками **variant** и **answer_file**.
+Answer-файл - файл ответов, полученный из CollaborativeFilteringConsole
+
+##### Пример индекс файла
+
+```
+1,.\AgentData\1-answer.csv
+```
+
+
+
+
 ### CollaborativeFilteringConsole
 Консоль, рассчитывающая на основе файла с существующими оценками, предсказанные оценки.
 
