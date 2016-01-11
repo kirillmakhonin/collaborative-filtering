@@ -73,9 +73,37 @@ namespace CollaborativeAgent
             HasVariant = hasVariant;
         }
 
-        public void LoadFromSIB()
+        public void LoadFromSIB(KPICore.KPICore core)
         {
-            throw new NotImplementedException("Loading from smart-m3 is not supported");
+            Clear();
+
+            // Load rates
+            foreach (string[] triple in core.queryRDF("any", "hasRate", "any", "literal"))
+                HasRates.Add(new Tuple<BaseEntities.Mark, int>(new BaseEntities.Mark() { uri = triple[0] }, int.Parse(triple[2])));
+
+            // Load items
+            foreach (string[] triple in core.queryRDF("any", "hasItem", "any", "literal"))
+                HasItems.Add(new Tuple<BaseEntities.Mark, int>(new BaseEntities.Mark() { uri = triple[0] }, int.Parse(triple[2])));
+
+            // Load users
+            foreach (string[] triple in core.queryRDF("any", "hasUser", "any", "literal"))
+                HasUsers.Add(new Tuple<BaseEntities.Mark, int>(new BaseEntities.Mark() { uri = triple[0] }, int.Parse(triple[2])));
+
+            // Uploaded by student
+            foreach (string[] triple in core.queryRDF("any", "uploadedByStudent", "any", "uri"))
+                UploadedByStudent.Add(new Tuple<BaseEntities.Mark, BaseEntities.Student>(new BaseEntities.Mark() { uri = triple[0] }, new BaseEntities.Student() { uri = triple[2] }));
+
+            // Has variant
+            foreach (string[] triple in core.queryRDF("any", "hasVariant", "any", "literal"))
+                HasVariant.Add(new Tuple<BaseEntities.Student, int>(new BaseEntities.Student() { uri = triple[0] }, int.Parse(triple[2])));
+
+            AnalyzeTriplets();
+
+            foreach (var correction in IsCorrect)
+            {
+                core.insert(correction.Item1.uri, "isCorrect", correction.Item2 ? "1" : "0", "literal");
+            }
+
         }
 
         public void AnalyzeTriplets()

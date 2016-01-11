@@ -4,20 +4,20 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.IO;
+using KPICore;
 
 namespace CollaborativeAgent
 {
-    class Program
+    public class Program : iKPIC_subscribeHandler
     {
-
-
         public static Dictionary<int, List<BaseEntities.AnswerLine>> VariantInformation
         { get; private set; }
 
         private static BaseState GlobalState = new BaseState();
 
 
-        public static bool CheckVariantResults(int variantId, List<Tuple<int, int, int>> userItemRates){
+        static public bool CheckVariantResults(int variantId, List<Tuple<int, int, int>> userItemRates)
+        {
             if (!VariantInformation.ContainsKey(variantId))
                 return false;
 
@@ -125,9 +125,51 @@ namespace CollaborativeAgent
 
         }
 
-        static void Main(string[] args)
+        public Program()
+        {
+
+        }
+
+        KPICore.KPICore core;
+        BaseState state;
+
+        public void ClearSpace()
+        {
+            core.remove("any", "any", "any", "uri");
+            core.remove("any", "any", "any", "literal");
+        }
+        public void Start(string[] args)
         {
             VariantInformation = new Dictionary<int, List<BaseEntities.AnswerLine>>();
+
+            Console.Write("HOST>");
+            string host = Console.ReadLine();
+            Console.Write("PORT>");
+            string portString = Console.ReadLine();
+            int port;
+            Console.Write("SMART SPACE NAME>");
+            string smartSpaceName = Console.ReadLine();
+
+            if (!int.TryParse(portString, out port))
+            {
+                Console.Error.WriteLine("Incorrect port number");
+                return;
+            }
+
+
+            core = new KPICore.KPICore(host, port, smartSpaceName);
+            state = new BaseState();
+
+            if (!core.join())
+            {
+                Console.Error.WriteLine("Cannot join smart space. Host: {0}, port: {1}, smart-space-name: {2}", host, port, smartSpaceName);
+                return;
+            }
+
+
+            ClearSpace();
+
+            string subscribeKey = core.subscribeRDF("any", "hasVariant", "any", "literal", this);
 
             try
             {
@@ -136,11 +178,7 @@ namespace CollaborativeAgent
             catch (Exception exc)
             {
                 Console.Error.WriteLine("Cannot start agent, error: {0}", exc.Message);
-            }
-
-
-
-            
+            }            
 
             ConsoleKey exitKey = ConsoleKey.Escape;
             Console.WriteLine("Agent started. Press {0} for exit", exitKey);
@@ -155,6 +193,26 @@ namespace CollaborativeAgent
             }
             while (keyinfo.Key != ConsoleKey.Escape);
 
+            core.leave();
+
+        }
+
+
+
+        static void Main(string[] args)
+        {
+            Program p = new Program();
+            p.Start(args);
+        }
+
+        public void kpic_SIBEventHandler(System.Collections.ArrayList newResults, System.Collections.ArrayList obsoleteResults, string subID)
+        {
+            state.LoadFromSIB(core);
+        }
+
+        public void kpic_SIBEventHandlerSPARQL(SPARQLResults newResults, SPARQLResults obsoleteResults, string subID)
+        {
+            state.LoadFromSIB(core);
         }
     }
 }
