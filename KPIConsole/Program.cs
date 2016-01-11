@@ -55,6 +55,17 @@ namespace KPIConsole
             return Console.ReadLine();
         }
 
+        public void ClearStudentSpace(string studentUri)
+        {
+            foreach (string[] triple in core.queryRDF("any", "uploadedByStudent", studentUri, "uri"))
+            {
+                core.remove(triple[0], "any", "any", "uri");
+                core.remove(triple[0], "any", "any", "literal");
+            }
+            core.remove(studentUri, "any", "any", "uri");
+            core.remove(studentUri, "any", "any", "literal");
+        }
+
         public void InsertData()
         {
             string student = Get("student");
@@ -102,7 +113,9 @@ namespace KPIConsole
 
 
 
-            core.remove("any", "uploadedByStudent", studentUri, "uri");
+            //core.remove("any", "uploadedByStudent", studentUri, "uri");
+            ClearStudentSpace(studentUri);
+
             int markNo = 1;
             foreach (string line in lines)
             {
