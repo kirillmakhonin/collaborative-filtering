@@ -5,6 +5,8 @@ using System.Text;
 using System.Threading.Tasks;
 using System.IO;
 using KPICore;
+using YamlDotNet.Serialization;
+using YamlDotNet.Serialization.NamingConventions;
 
 namespace CollaborativeAgent
 {
@@ -138,23 +140,67 @@ namespace CollaborativeAgent
             core.remove("any", "any", "any", "uri");
             core.remove("any", "any", "any", "literal");
         }
+
+        public class ConnectionConfig
+        {
+            public string Host { get; set; }
+            public int Port { get; set; }
+            [YamlAlias("space-name")]
+            public string SmartspaceName { get; set; }
+        }
+
+        public bool LoadYaml(out string host, out int port, out string smartspaceName)
+        {
+            try {
+                using(var reader = File.OpenText("connection.yaml"))
+                {
+                    var deserializer = new Deserializer(namingConvention: new CamelCaseNamingConvention());
+                    ConnectionConfig config = deserializer.Deserialize<ConnectionConfig>(reader);
+
+                    host = config.Host;
+                    port = config.Port;
+                    smartspaceName = config.SmartspaceName;
+                    return true;
+
+                }
+            }
+            catch (Exception e){
+                host = "";
+                port = 0;
+                smartspaceName = "";
+                return false;
+            }
+        }
+
+
         public void Start(string[] args)
         {
             VariantInformation = new Dictionary<int, List<BaseEntities.AnswerLine>>();
 
-            Console.Write("HOST>");
-            string host = Console.ReadLine();
-            Console.Write("PORT>");
-            string portString = Console.ReadLine();
+            string host, smartSpaceName, portString;
             int port;
-            Console.Write("SMART SPACE NAME>");
-            string smartSpaceName = Console.ReadLine();
 
-            if (!int.TryParse(portString, out port))
+            if (LoadYaml(out host, out port, out smartSpaceName))
             {
-                Console.Error.WriteLine("Incorrect port number");
-                return;
+                Console.WriteLine("Loaded from YAML config: host = {0}, port = {1}, smart-space-name = {2}", host, port, smartSpaceName);
             }
+            else
+            {
+                Console.WriteLine("Cannot load config. Please provide config from prompt");
+
+                Console.Write("HOST>");
+                host = Console.ReadLine();
+                Console.Write("PORT>");
+                portString = Console.ReadLine();
+                Console.Write("SMART SPACE NAME>");
+                smartSpaceName = Console.ReadLine();
+                if (!int.TryParse(portString, out port))
+                {
+                    Console.Error.WriteLine("Incorrect port number");
+                    return;
+                }
+            }
+            
 
 
             core = new KPICore.KPICore(host, port, smartSpaceName);
