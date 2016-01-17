@@ -20,9 +20,9 @@ namespace KPIConsole
             Console.WriteLine("Starting agent!");
 
             Program p = new Program();
-            p.Start();
 
-            p.InsertData();
+            if (p.Start())
+                p.InsertData();
 
             Console.ReadKey();
 
@@ -211,7 +211,7 @@ namespace KPIConsole
 
 
 
-        public void Start()
+        public bool Start()
         {
             string host, smartSpaceName, portString;
             int port;
@@ -233,7 +233,7 @@ namespace KPIConsole
                 if (!int.TryParse(portString, out port))
                 {
                     Console.Error.WriteLine("Incorrect port number");
-                    return;
+                    return false;
                 }
             }
 
@@ -242,8 +242,10 @@ namespace KPIConsole
             if (!core.join())
             {
                 Console.Error.WriteLine("Cannot join smart space. Host: {0}, port: {1}, smart-space-name: {2}", host, port, smartSpaceName);
-                return;
+                return false;
             }
+
+            return true;
         }
     }
 }
